@@ -1,0 +1,49 @@
+! ============================================================
+!  Router: R2 — GRE Branch Router (BR1 Site, 192.168.1.0/24)
+!  Device: Cisco 2911
+!  Role:   Establishes two GRE tunnels:
+!          Tunnel116 → R1 (HQ, 192.168.0.0/24)
+!          Tunnel118 → R3 (BR2, 192.168.2.0/24)
+!  Note:   Passwords removed for publication.
+! ============================================================
+
+hostname R2
+!
+enable secret <removed>
+!
+! --- GRE Tunnel to R1 (HQ) ---
+interface Tunnel116
+ ip address 172.16.0.11 255.255.255.0
+ mtu 1476
+ tunnel source Serial0/0/0
+ tunnel destination 1.1.1.1
+!
+! --- GRE Tunnel to R3 (BR2) ---
+interface Tunnel118
+ ip address 172.18.0.10 255.255.255.0
+ mtu 1476
+ tunnel source Serial0/0/0
+ tunnel destination 3.3.3.3
+!
+interface GigabitEthernet0/0
+ description LAN — Branch 1 (192.168.1.0/24)
+ ip address 192.168.1.1 255.255.255.0
+ duplex auto
+ speed auto
+!
+interface Serial0/0/0
+ description WAN — Uplink to ISP (2.2.2.0/24)
+ ip address 2.2.2.2 255.255.255.0
+!
+ip classless
+! Routes to remote WAN endpoints (via ISP)
+ip route 1.1.1.0 255.255.255.0 2.2.2.1
+ip route 3.3.3.0 255.255.255.0 2.2.2.1
+! Routes to other LANs (via GRE tunnels)
+ip route 192.168.0.0 255.255.255.0 172.16.0.10
+ip route 192.168.2.0 255.255.255.0 172.18.0.11
+!
+line vty 0 4
+ login
+!
+end
